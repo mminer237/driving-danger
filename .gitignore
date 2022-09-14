@@ -1,0 +1,10 @@
+site/*
+!site/*/
+site/data
+!site/icon.svg
+.vscode
+Gemfile.lock
+node_modules
+package-lock.json
+vendor
+composer.lock

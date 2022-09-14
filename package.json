@@ -1,0 +1,13 @@
+{
+	"name": "driving-danger",
+	"homepage": "https://drivingdanger.com",
+	"version": "1.0.0",
+	"license": "UNLICENSED",
+	"repository": "github:mminer237/driving-danger",
+	"private": true,
+	"devDependencies": {
+		"csso-cli": "^3.0.0",
+		"terser": "^5.8.0"
+	},
+	"author": "Matthew Miner <mminer237@gmail.com> (https://matthewminer.name)"
+}
