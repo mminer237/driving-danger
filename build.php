@@ -24,8 +24,9 @@ file_put_contents($tvtExcelPath, $tvtExcelFile);
 /* Parse FHWA Traffic Volume Trends data */
 $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
 $reader->setReadDataOnly(true);
-$reader->setLoadSheetsOnly(['Page 1', 'Page 4', 'Page 5', 'Page 6']);
-$tvtData = $reader->load($tvtExcelPath);
+$reader->setLoadSheetsOnly(['Page1', 'Page 4', 'Page 5', 'Page 6', 'Data']);
+$tvtSpreadsheets = $reader->load($tvtExcelPath);
+$date = $tvtSpreadsheets->getSheetByName('Page1')->getCellByColumnAndRow(5, 10)->getCalculatedValue();
 
 /* Minify assets */
 foreach (scandir('site/js') as $file) {
