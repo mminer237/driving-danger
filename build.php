@@ -2,6 +2,7 @@
 require_once(__DIR__.'/vendor/autoload.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 chdir(__DIR__);
 
@@ -15,18 +16,32 @@ if (!is_dir('site/data'))
 const FHWA_URL = 'https://www.fhwa.dot.gov/policyinformation/travel_monitoring/tvt.cfm';
 $fhwaPage = file_get_contents(FHWA_URL);
 preg_match('/<a href="([^"]*?(\d\d[a-z]{3}tvt\.xlsx))/', $fhwaPage, $matches);
-$tvtExcelFile = file_get_contents('https://www.fhwa.dot.gov'.$matches[1]);
-if (empty($tvtExcelFile))
-	throw new Exception("Error: FHWA Traffic Volume Trends not found", 1);
 $tvtExcelPath = 'site/data/'.$matches[2];
-file_put_contents($tvtExcelPath, $tvtExcelFile);
+if (!copy('https://www.fhwa.dot.gov'.$matches[1], $tvtExcelPath))
+	throw new Exception("Error: FHWA Traffic Volume Trends not found", 1);
 
 /* Parse FHWA Traffic Volume Trends data */
 $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
 $reader->setReadDataOnly(true);
-$reader->setLoadSheetsOnly(['Page1', 'Page 4', 'Page 5', 'Page 6', 'Data']);
 $tvtSpreadsheets = $reader->load($tvtExcelPath);
-$date = $tvtSpreadsheets->getSheetByName('Page1')->getCellByColumnAndRow(5, 10)->getCalculatedValue();
+$date = (
+		$tvtSpreadsheets->getSheetByName('Page 1') ??
+		$tvtSpreadsheets->getSheetByName('Page1')
+	)->getCellByColumnAndRow(5, 10)->getCalculatedValue();
+$ruralMiles = getMiles($tvtSpreadsheets->getSheetByName('Page 4'));
+$urbanMiles = getMiles($tvtSpreadsheets->getSheetByName('Page 5'));
+$totalMiles = getMiles($tvtSpreadsheets->getSheetByName('Page 6'));
+
+function getMiles(Worksheet $sheet): array {
+	$data = [];
+	for ($row = 9; $row <= 67; $row++) {
+		if ($sheet->getCellByColumnAndRow(4, $row)->getValue()) {
+			$data[$sheet->getCellByColumnAndRow(1, $row)->getValue()] =
+				$sheet->getCellByColumnAndRow(5, $row)->getValue();
+		}
+	}
+	return $data;
+}
 
 /* Minify assets */
 foreach (scandir('site/js') as $file) {
