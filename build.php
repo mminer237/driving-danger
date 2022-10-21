@@ -43,6 +43,24 @@ function getMiles(Worksheet $sheet): array {
 	return $data;
 }
 
+/* Download NHTSA FARS data */
+const FARS_URL = 'https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/FARS/';
+$farsPage = file_get_contents(FARS_URL);
+preg_match('/<a href="file-downloads\?p=nhtsa\/downloads\/FARS\/(\d{4})\/">(?!.*<a href="file-downloads\?p=nhtsa\/downloads\/FARS\/\d{4}\/">)/s', $farsPage, $matches);
+$farsCsvsPath = "site/data/$matches[1]NationalCSVs";
+$farsZipPath = "site/data/$matches[1]NationalCSV.zip";
+if (!copy(
+	"https://static.nhtsa.gov/nhtsa/downloads/FARS/$matches[1]/National/FARS$matches[1]NationalCSV.zip",
+	$farsZipPath
+))
+	throw new Exception("Error: NHTSA FARS data not found", 1);
+$zip = new ZipArchive;
+$farsZipSuccess = $zip->open($farsZipPath);
+if ($farsZipSuccess) {
+	$zip->extractTo($farsCsvPath);
+	$zip->close();
+}
+
 /* Minify assets */
 foreach (scandir('site/js') as $file) {
 	if ($file !== '.' && $file !== '..') {
